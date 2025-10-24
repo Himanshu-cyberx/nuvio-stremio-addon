@@ -1,6 +1,6 @@
 {
   "name": "nuvio-stremio-addon",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Search-only Stremio addon using all Nuvio providers",
   "main": "addon.js",
   "type": "commonjs",
@@ -11,9 +11,9 @@
   "dependencies": {
     "stremio-addon-sdk": "^1.0.0",
     "axios": "^1.7.7",
-    "cheerio-without-node-native": "^1.0.0",
+    "cheerio": "^1.0.0-rc.12",
     "crypto-js": "^4.2.0",
-    "node-fetch": "^3.3.2"
+    "cheerio-without-node-native": "1.0.0-rc.2"
   },
   "devDependencies": {
     "nodemon": "^3.1.0"
