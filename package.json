@@ -7,13 +7,20 @@
     "start": "node addon.js"
   },
   "dependencies": {
-  "stremio-addon-sdk": "^1.0.0",
-  "cheerio-without-node-native": "^0.20.2"
+    "stremio-addon-sdk": "^1.0.0",
+    "cheerio-without-node-native": "^0.20.2",
+    "axios": "^1.7.7",
+    "crypto-js": "^4.2.0"
   },
   "engines": {
     "node": ">=14"
   },
-  "keywords": ["stremio", "addon", "nuvio", "streaming"],
+  "keywords": [
+    "stremio",
+    "addon",
+    "nuvio",
+    "streaming"
+  ],
   "author": "Himanshu",
   "license": "MIT"
 }
