@@ -48,17 +48,17 @@ builder.defineStreamHandler(({ id }) => {
   }));
 });
 
-// --- Vercel handler
-const addonInterface = builder.getInterface(); // returns object with serveHTTP()
+// --- Vercel handler (use getInterfaceV2)
+const addonInterface = builder.getInterfaceV2(); // <-- key fix
 
 module.exports = (req, res) => {
-  // Handle favicon requests gracefully
+  // Handle favicon gracefully
   if (req.url === "/favicon.ico") {
     res.statusCode = 204;
     res.end();
     return;
   }
 
-  // Use serveHTTP for all other requests
-  addonInterface.serveHTTP(req, res);
+  // Call the proper Vercel-compatible handler
+  addonInterface(req, res);
 };
