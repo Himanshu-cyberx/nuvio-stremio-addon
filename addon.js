@@ -46,4 +46,22 @@ builder.defineStreamHandler(({ id }) => {
   return Promise.allSettled(tasks).then(results => {
     const streams = results
       .filter(r => r.status === "fulfilled")
-      .fla
+      .flatMap(r => r.value?.streams || []);
+    return { streams };
+  });
+});
+
+// --- Interface for both local + Vercel
+const addonInterface = builder.getInterface();
+
+// --- For Vercel (HTTP handler)
+module.exports = (req, res) => {
+  return serveHTTP(addonInterface)(req, res);
+};
+
+// --- Local run support
+if (require.main === module) {
+  const port = 7000;
+  serveHTTP(addonInterface, { port });
+  console.log(`✅ Addon running locally at http://localhost:${port}/manifest.json`);
+}
