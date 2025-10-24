@@ -2,7 +2,7 @@ const { addonBuilder } = require("stremio-addon-sdk");
 const fs = require("fs");
 const path = require("path");
 
-// ✅ Manifest must include 'catalogs' even if empty
+// --- Manifest (must include catalogs: [])
 const manifest = {
   id: "community.nuvio.searchonly",
   version: "1.0.0",
@@ -11,33 +11,36 @@ const manifest = {
   resources: ["stream"],
   types: ["movie", "series"],
   idPrefixes: ["tt"],
-  catalogs: [] // 👈 Required to prevent crash
+  catalogs: [] // required even if empty
 };
 
 const builder = new addonBuilder(manifest);
 
-// 🔄 Dynamically load all .js providers from /providers
+// --- Load all providers dynamically
 const providersDir = path.join(__dirname, "providers");
 const providers = fs.readdirSync(providersDir)
   .filter(file => file.endsWith(".js"))
   .map(file => {
     try {
-      return require(path.join(providersDir, file));
+      const provider = require(path.join(providersDir, file));
+      console.log(`✅ Loaded provider: ${file}`);
+      return provider;
     } catch (err) {
       console.error(`❌ Failed to load ${file}:`, err);
       return null;
     }
   })
-  .filter(Boolean); // Remove failed imports
+  .filter(Boolean);
 
-// 🔍 Search-only stream handler
+// --- Stream handler
 builder.defineStreamHandler(({ id }) => {
-  const tasks = providers.map(fn => {
-    try {
-      return fn(id);
-    } catch (e) {
-      return Promise.resolve({ streams: [] });
-    }
+  const tasks = providers.map((fn, idx) => {
+    return Promise.resolve()
+      .then(() => fn(id))
+      .catch(err => {
+        console.error(`❌ Provider ${idx} failed:`, err);
+        return { streams: [] };
+      });
   });
 
   return Promise.allSettled(tasks).then(results => {
@@ -48,4 +51,5 @@ builder.defineStreamHandler(({ id }) => {
   });
 });
 
+// --- Correct export for Vercel
 module.exports = builder.getInterface();
