@@ -1,8 +1,8 @@
-const { addonBuilder } = require("stremio-addon-sdk");
+const { addonBuilder, serveHTTP } = require("stremio-addon-sdk");
 const fs = require("fs");
 const path = require("path");
 
-// --- Manifest (must include catalogs: [])
+// --- Manifest
 const manifest = {
   id: "community.nuvio.searchonly",
   version: "1.0.0",
@@ -46,10 +46,4 @@ builder.defineStreamHandler(({ id }) => {
   return Promise.allSettled(tasks).then(results => {
     const streams = results
       .filter(r => r.status === "fulfilled")
-      .flatMap(r => r.value?.streams || []);
-    return { streams };
-  });
-});
-
-// --- Correct export for Vercel
-module.exports = builder.getInterface();
+      .fla
