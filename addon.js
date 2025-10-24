@@ -1,8 +1,8 @@
-const { addonBuilder, serveHTTP } = require("stremio-addon-sdk");
+const { addonBuilder } = require("stremio-addon-sdk");
 const fs = require("fs");
 const path = require("path");
 
-// --- Manifest (must include catalogs: [])
+// --- Manifest
 const manifest = {
   id: "community.nuvio.searchonly",
   version: "1.0.0",
@@ -11,7 +11,7 @@ const manifest = {
   resources: ["stream"],
   types: ["movie", "series"],
   idPrefixes: ["tt"],
-  catalogs: [] // required even if empty
+  catalogs: []
 };
 
 const builder = new addonBuilder(manifest);
@@ -26,48 +26,39 @@ if (fs.existsSync(providersDir)) {
     .filter(file => file.endsWith(".js"))
     .map(file => {
       try {
-        const provider = require(path.join(providersDir, file));
-        console.log(`✅ Loaded provider: ${file}`);
-        return provider;
+        return require(path.join(providersDir, file));
       } catch (err) {
-        console.error(`❌ Failed to load ${file}:`, err);
+        console.error(`Failed to load provider ${file}:`, err);
         return null;
       }
     })
     .filter(Boolean);
-} else {
-  console.warn("⚠️ No providers directory found");
 }
 
 // --- Stream handler
 builder.defineStreamHandler(({ id }) => {
-  const tasks = providers.map((fn, idx) =>
+  const tasks = providers.map(provider =>
     Promise.resolve()
-      .then(() => fn(id))
-      .catch(err => {
-        console.error(`❌ Provider ${idx} failed:`, err);
-        return { streams: [] };
-      })
+      .then(() => provider(id))
+      .catch(() => ({ streams: [] }))
   );
 
-  return Promise.allSettled(tasks).then(results => {
-    const streams = results
-      .filter(r => r.status === "fulfilled")
-      .flatMap(r => r.value?.streams || []);
-    return { streams };
-  });
+  return Promise.all(tasks).then(results => ({
+    streams: results.flatMap(r => r.streams || [])
+  }));
 });
 
-// --- Serve interface for local use
+// --- Vercel handler with favicon handling
 const addonInterface = builder.getInterface();
 
-if (require.main === module) {
-  const port = 7000;
-  serveHTTP(addonInterface, { port });
-  console.log(`✅ Addon running locally at http://localhost:${port}/manifest.json`);
-}
-
-// --- Export handler for Vercel
 module.exports = (req, res) => {
-  serveHTTP(addonInterface)(req, res);
+  // Handle favicon requests gracefully
+  if (req.url === "/favicon.ico") {
+    res.statusCode = 204;
+    res.end();
+    return;
+  }
+
+  // Pass all other requests to Stremio addon interface
+  addonInterface(req, res);
 };
