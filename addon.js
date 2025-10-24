@@ -48,8 +48,8 @@ builder.defineStreamHandler(({ id }) => {
   }));
 });
 
-// --- Vercel handler with favicon handling
-const addonInterface = builder.getInterface();
+// --- Vercel handler
+const addonInterface = builder.getInterface(); // returns object with serveHTTP()
 
 module.exports = (req, res) => {
   // Handle favicon requests gracefully
@@ -59,6 +59,6 @@ module.exports = (req, res) => {
     return;
   }
 
-  // Pass all other requests to Stremio addon interface
-  addonInterface(req, res);
+  // Use serveHTTP for all other requests
+  addonInterface.serveHTTP(req, res);
 };
